@@ -48,11 +48,12 @@ async def evaluate(message_screener):
         classified.
     """
     score = 0
-    eliminated = 0
     total_cases = len(test_cases)
     progress = 0
     failed_cases = []
     failed_case_indices = []
+    false_negatives = 0
+    false_positives = 0
 
     async def process_test_case(test_case):
         """Process a single test case with the provided message_screener.
@@ -64,11 +65,15 @@ async def evaluate(message_screener):
         Side effects:
             Prints test case results and updates score and counters.
         """
-        nonlocal score, eliminated, progress
+        nonlocal score, progress, false_negatives, false_positives
         message_text = test_case["message_text"]
         is_request = test_case["is_request"]
         result, response_message = await message_screener(message_text)
         if result != is_request:
+            if is_request:
+                false_negatives += 1
+            else:
+                false_positives += 1
             print(f"Test case failed: {message_text}")
             print(f"Answer should be {is_request}, but got {result}")
             print(f"Reason: {response_message}")
@@ -80,8 +85,6 @@ async def evaluate(message_screener):
             })
             failed_case_indices.append(progress)
         else:
-            if not is_request:
-                eliminated += 1
             score += 1
         progress += 1
         print(f"{progress}/{total_cases} completed")
@@ -96,7 +99,8 @@ async def evaluate(message_screener):
 
     print(f"Failed cases: {failed_case_indices}")
     print(f"Score: {score}/{total_cases}")
-    print(f"Eliminated: {eliminated}/{total_cases}")
+    print(f"False negatives: {false_negatives}")
+    print(f"False positives: {false_positives}")
     return score / total_cases
 
 
