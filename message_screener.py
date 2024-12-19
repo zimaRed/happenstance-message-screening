@@ -23,10 +23,10 @@ import os
 import re
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 load_dotenv()
-openai_client = OpenAI()
+openai_client = AsyncOpenAI()
 
 # Load the test cases from a JSON file.
 with open("message_screener_examples.json", "r", encoding="utf-8") as f:
@@ -231,7 +231,7 @@ async def llm_filter(message_text):
     ]
 
     try:
-        response = openai_client.chat.completions.create(
+        response = await openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=messages,
             tools=tools,
